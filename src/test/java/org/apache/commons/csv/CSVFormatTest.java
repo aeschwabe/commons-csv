@@ -390,7 +390,7 @@ public class CSVFormatTest {
 
         final CSVFormat cSVFormat = CSVFormat.POSTGRESQL_TEXT;
 
-        assertEquals('\"', (char)cSVFormat.getEscapeCharacter());
+        assertEquals('\\', (char)cSVFormat.getEscapeCharacter());
         assertFalse(cSVFormat.getIgnoreSurroundingSpaces());
 
         assertFalse(cSVFormat.getTrailingDelimiter());
@@ -417,7 +417,7 @@ public class CSVFormatTest {
         assertEquals('\"', (char)cSVFormat.getQuoteCharacter());
         assertTrue(cSVFormat.isNullStringSet());
 
-        assertEquals('\"', (char)cSVFormat.getEscapeCharacter());
+        assertEquals('\\', (char)cSVFormat.getEscapeCharacter());
         assertFalse(cSVFormat.getIgnoreSurroundingSpaces());
 
         assertFalse(cSVFormat.getTrailingDelimiter());
@@ -474,7 +474,7 @@ public class CSVFormatTest {
         final CSVFormat cSVFormat = CSVFormat.MYSQL;
 
         try {
-            cSVFormat.format(null);
+            cSVFormat.format((Object[]) null);
             fail("Expecting exception: NullPointerException");
         } catch(final NullPointerException e) {
             assertEquals(CSVFormat.class.getName(), e.getStackTrace()[0].getClassName());
@@ -639,7 +639,6 @@ public class CSVFormatTest {
     @Test
     public void testToString() {
 
-        final CSVFormat cSVFormat = CSVFormat.POSTGRESQL_TEXT;
         final String string = CSVFormat.INFORMIX_UNLOAD.toString();
 
         assertEquals("Delimiter=<|> Escape=<\\> QuoteChar=<\"> RecordSeparator=<\n> EmptyLines:ignored SkipHeaderRecord:false", string);

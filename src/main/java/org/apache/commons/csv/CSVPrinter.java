@@ -24,11 +24,47 @@ import static org.apache.commons.csv.Constants.SP;
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
+import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 /**
- * Prints values in a CSV format.
+ * Prints values in a {@link CSVFormat CSV format}.
+ *
+ * <p>Values can be appended to the output by calling the {@link #print(Object)} method.
+ * Values are printed according to {@link String#valueOf(Object)}.
+ * To complete a record the {@link #println()} method has to be called.
+ * Comments can be appended by calling {@link #printComment(String)}.
+ * However a comment will only be written to the output if the {@link CSVFormat} supports comments.
+ * </p>
+ *
+ * <p>The printer also supports appending a complete record at once by calling {@link #printRecord(Object...)}
+ * or {@link #printRecord(Iterable)}.
+ * Furthermore {@link #printRecords(Object...)}, {@link #printRecords(Iterable)} and {@link #printRecords(ResultSet)}
+ * methods can be used to print several records at once.
+ * </p>
+ *
+ * <p>Example:</p>
+ *
+ * <pre>
+ * try (CSVPrinter printer = new CSVPrinter(new FileWriter("csv.txt"), CSVFormat.EXCEL)) {
+ *     printer.printRecord("id", "userName", "firstName", "lastName", "birthday");
+ *     printer.printRecord(1, "john73", "John", "Doe", LocalDate.of(1973, 9, 15));
+ *     printer.println();
+ *     printer.printRecord(2, "mary", "Mary", "Meyer", LocalDate.of(1985, 3, 29));
+ * } catch (IOException ex) {
+ *     ex.printStackTrace();
+ * }
+ * </pre>
+ *
+ * <p>This code will write the following to csv.txt:</p>
+ * <pre>
+ * id,userName,firstName,lastName,birthday
+ * 1,john73,John,Doe,1973-09-15
+ *
+ * 2,mary,Mary,Meyer,1985-03-29
+ * </pre>
  */
 public final class CSVPrinter implements Flushable, Closeable {
 
@@ -94,9 +130,7 @@ public final class CSVPrinter implements Flushable, Closeable {
      */
     public void close(final boolean flush) throws IOException {
         if (flush || format.getAutoFlush()) {
-            if (out instanceof Flushable) {
-                ((Flushable) out).flush();
-            }
+            flush();
         }
         if (out instanceof Closeable) {
             ((Closeable) out).close();
@@ -142,11 +176,17 @@ public final class CSVPrinter implements Flushable, Closeable {
      * Prints a comment on a new line among the delimiter separated values.
      *
      * <p>
-     * Comments will always begin on a new line and occupy a least one full line. The character specified to start
+     * Comments will always begin on a new line and occupy at least one full line. The character specified to start
      * comments and a space will be inserted at the beginning of each new line in the comment.
      * </p>
      *
+     * <p>
      * If comments are disabled in the current CSV format this method does nothing.
+     * </p>
+     *
+     * <p>This method detects line breaks inside the comment string and inserts {@link CSVFormat#getRecordSeparator()}
+     * to start a new line of the comment. Note that this might produce unexpected results for formats that do not use
+     * line breaks as record separator.</p>
      *
      * @param comment
      *            the comment to output
@@ -323,15 +363,7 @@ public final class CSVPrinter implements Flushable, Closeable {
      *             If an I/O error occurs
      */
     public void printRecords(final Object... values) throws IOException {
-        for (final Object value : values) {
-            if (value instanceof Object[]) {
-                this.printRecord((Object[]) value);
-            } else if (value instanceof Iterable) {
-                this.printRecord((Iterable<?>) value);
-            } else {
-                this.printRecord(value);
-            }
-        }
+        printRecords(Arrays.asList(values));
     }
 
     /**
@@ -348,7 +380,8 @@ public final class CSVPrinter implements Flushable, Closeable {
         final int columnCount = resultSet.getMetaData().getColumnCount();
         while (resultSet.next()) {
             for (int i = 1; i <= columnCount; i++) {
-                print(resultSet.getObject(i));
+                final Object object = resultSet.getObject(i);
+                print(object instanceof Clob ? ((Clob) object).getCharacterStream() : object);
             }
             println();
         }

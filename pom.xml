@@ -20,10 +20,10 @@
   <parent>
     <groupId>org.apache.commons</groupId>
     <artifactId>commons-parent</artifactId>
-    <version>43</version>
+    <version>47</version>
   </parent>
   <artifactId>commons-csv</artifactId>
-  <version>1.6-SNAPSHOT</version>
+  <version>1.7-SNAPSHOT</version>
   <name>Apache Commons CSV</name>
   <url>http://commons.apache.org/proper/commons-csv/</url>
   <description>
@@ -53,13 +53,13 @@ CSV files of various types.
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.7</version>
+      <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.4.196</version>
+      <version>1.4.198</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -134,24 +134,30 @@ CSV files of various types.
   </distributionManagement>
 
   <properties>
-    <commons.release.version>1.6</commons.release.version>
-    <commons.release.desc>(Java 7+)</commons.release.desc>
+    <commons.release.version>1.7</commons.release.version>
+    <commons.release.desc>(Java 8)</commons.release.desc>
     <!-- The RC version used in the staging repository URL. -->
     <commons.rc.version>RC1</commons.rc.version>
     <commons.componentid>csv</commons.componentid>
     <commons.module.name>org.apache.commons.csv</commons.module.name>
     <commons.jira.id>CSV</commons.jira.id>
     <commons.jira.pid>12313222</commons.jira.pid>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <project.inceptionYear>2005</project.inceptionYear>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <!-- Ensure copies work OK (can be removed later when this is in parent POM) -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <commons.encoding>UTF-8</commons.encoding>
 
-    <checkstyle.version>2.17</checkstyle.version>
+    <checkstyle.version>3.0.0</checkstyle.version>
     <checkstyle.header.file>${basedir}/LICENSE-header.txt</checkstyle.header.file>
     <checkstyle.resourceExcludes>LICENSE.txt, NOTICE.txt</checkstyle.resourceExcludes>
+
+    <!-- Fix for COMMONSSITE-124 remove once commons-parent 48 has been released -->
+    <commons.scmPubUrl>https://svn.apache.org/repos/infra/websites/production/commons/content/proper/${project.artifactId}</commons.scmPubUrl>
+    <!-- Fix for COMMONSSITE-125 remove once commons-parent 48 has been released -->
+    <commons.osgi.symbolicName>org.apache.commons.${commons.componentid}</commons.osgi.symbolicName>
   </properties>
 
   <build>
@@ -214,7 +220,6 @@ CSV files of various types.
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>${commons.rat.version}</version>
         <!-- Should agree with config in reporting section -->
         <configuration>
           <excludes>
@@ -237,6 +242,7 @@ CSV files of various types.
           </excludes>
         </configuration>
       </plugin>
+
     </plugins>
   </build>
 
@@ -263,7 +269,7 @@ CSV files of various types.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.8</version>
+        <version>3.11.0</version>
         <configuration>
           <targetJdk>${maven.compiler.target}</targetJdk>
         </configuration>

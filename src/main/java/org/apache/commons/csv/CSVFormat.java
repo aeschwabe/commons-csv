@@ -20,10 +20,10 @@ package org.apache.commons.csv;
 import static org.apache.commons.csv.Constants.BACKSLASH;
 import static org.apache.commons.csv.Constants.COMMA;
 import static org.apache.commons.csv.Constants.COMMENT;
-import static org.apache.commons.csv.Constants.EMPTY;
 import static org.apache.commons.csv.Constants.CR;
 import static org.apache.commons.csv.Constants.CRLF;
 import static org.apache.commons.csv.Constants.DOUBLE_QUOTE_CHAR;
+import static org.apache.commons.csv.Constants.EMPTY;
 import static org.apache.commons.csv.Constants.LF;
 import static org.apache.commons.csv.Constants.PIPE;
 import static org.apache.commons.csv.Constants.SP;
@@ -36,6 +36,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,8 +59,13 @@ import java.util.Set;
  * <ul>
  * <li>{@link #DEFAULT}</li>
  * <li>{@link #EXCEL}</li>
+ * <li>{@link #INFORMIX_UNLOAD}</li>
+ * <li>{@link #INFORMIX_UNLOAD_CSV}</li>
  * <li>{@link #MYSQL}</li>
  * <li>{@link #RFC4180}</li>
+ * <li>{@link #ORACLE}</li>
+ * <li>{@link #POSTGRESQL_CSV}</li>
+ * <li>{@link #POSTGRESQL_TEXT}</li>
  * <li>{@link #TDF}</li>
  * </ul>
  *
@@ -185,6 +191,18 @@ public final class CSVFormat implements Serializable {
         InformixUnloadCsv(CSVFormat.INFORMIX_UNLOAD_CSV),
 
         /**
+         * @see CSVFormat#MONGODB_CSV
+         * @since 1.7
+         */
+        MongoDBCsv(CSVFormat.MONGODB_CSV),
+
+        /**
+         * @see CSVFormat#MONGODB_TSV
+         * @since 1.7
+         */
+        MongoDBTsv(CSVFormat.MONGODB_TSV),
+
+        /**
          * @see CSVFormat#MYSQL
          */
         MySQL(CSVFormat.MYSQL),
@@ -238,10 +256,10 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter(',')</li>
-     * <li>withQuote('"')</li>
-     * <li>withRecordSeparator("\r\n")</li>
-     * <li>withIgnoreEmptyLines(true)</li>
+     * <li>{@code withDelimiter(',')}</li>
+     * <li>{@code withQuote('"')}</li>
+     * <li>{@code withRecordSeparator("\r\n")}</li>
+     * <li>{@code withIgnoreEmptyLines(true)}</li>
      * </ul>
      *
      * @see Predefined#Default
@@ -265,11 +283,11 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>{@link #withDelimiter(char) withDelimiter(',')}</li>
-     * <li>{@link #withQuote(char) withQuote('"')}</li>
-     * <li>{@link #withRecordSeparator(String) withRecordSeparator("\r\n")}</li>
-     * <li>{@link #withIgnoreEmptyLines(boolean) withIgnoreEmptyLines(false)}</li>
-     * <li>{@link #withAllowMissingColumnNames(boolean) withAllowMissingColumnNames(true)}</li>
+     * <li>{@code {@link #withDelimiter(char) withDelimiter(',')}}</li>
+     * <li>{@code {@link #withQuote(char) withQuote('"')}}</li>
+     * <li>{@code {@link #withRecordSeparator(String) withRecordSeparator("\r\n")}}</li>
+     * <li>{@code {@link #withIgnoreEmptyLines(boolean) withIgnoreEmptyLines(false)}}</li>
+     * <li>{@code {@link #withAllowMissingColumnNames(boolean) withAllowMissingColumnNames(true)}}</li>
      * </ul>
      * <p>
      * Note: This is currently like {@link #RFC4180} plus {@link #withAllowMissingColumnNames(boolean)
@@ -296,10 +314,10 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter(',')</li>
-     * <li>withQuote("\"")</li>
-     * <li>withRecordSeparator('\n')</li>
-     * <li>withEscape('\\')</li>
+     * <li>{@code withDelimiter(',')}</li>
+     * <li>{@code withEscape('\\')}</li>
+     * <li>{@code withQuote("\"")}</li>
+     * <li>{@code withRecordSeparator('\n')}</li>
      * </ul>
      *
      * @see Predefined#MySQL
@@ -328,9 +346,9 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter(',')</li>
-     * <li>withQuote("\"")</li>
-     * <li>withRecordSeparator('\n')</li>
+     * <li>{@code withDelimiter(',')}</li>
+     * <li>{@code withQuote("\"")}</li>
+     * <li>{@code withRecordSeparator('\n')}</li>
      * </ul>
      *
      * @see Predefined#MySQL
@@ -347,6 +365,78 @@ public final class CSVFormat implements Serializable {
     // @formatter:on
 
     /**
+     * Default MongoDB CSV format used by the {@code mongoexport} operation.
+     * <p>
+     * <b>Parsing is not supported yet.</b>
+     * </p>
+     *
+     * <p>
+     * This is a comma-delimited format. Values are double quoted only if needed and special characters are escaped with
+     * {@code '"'}. A header line with field names is expected.
+     * </p>
+     *
+     * <p>
+     * Settings are:
+     * </p>
+     * <ul>
+     * <li>{@code withDelimiter(',')}</li>
+     * <li>{@code withEscape('"')}</li>
+     * <li>{@code withQuote('"')}</li>
+     * <li>{@code withQuoteMode(QuoteMode.ALL_NON_NULL)}</li>
+     * <li>{@code withSkipHeaderRecord(false)}</li>
+     * </ul>
+     *
+     * @see Predefined#MongoDBCsv
+     * @see <a href="https://docs.mongodb.com/manual/reference/program/mongoexport/">MongoDB mongoexport command
+     *      documentation</a>
+     * @since 1.7
+     */
+    // @formatter:off
+    public static final CSVFormat MONGODB_CSV = DEFAULT
+            .withDelimiter(COMMA)
+            .withEscape(DOUBLE_QUOTE_CHAR)
+            .withQuote(DOUBLE_QUOTE_CHAR)
+            .withQuoteMode(QuoteMode.MINIMAL)
+            .withSkipHeaderRecord(false);
+    // @formatter:off
+
+    /**
+     * Default MongoDB TSV format used by the {@code mongoexport} operation.
+     * <p>
+     * <b>Parsing is not supported yet.</b>
+     * </p>
+     *
+     * <p>
+     * This is a tab-delimited format. Values are double quoted only if needed and special
+     * characters are escaped with {@code '"'}. A header line with field names is expected.
+     * </p>
+     *
+     * <p>
+     * Settings are:
+     * </p>
+     * <ul>
+     * <li>{@code withDelimiter('\t')}</li>
+     * <li>{@code withEscape('"')}</li>
+     * <li>{@code withQuote('"')}</li>
+     * <li>{@code withQuoteMode(QuoteMode.ALL_NON_NULL)}</li>
+     * <li>{@code withSkipHeaderRecord(false)}</li>
+     * </ul>
+     *
+     * @see Predefined#MongoDBCsv
+     * @see <a href="https://docs.mongodb.com/manual/reference/program/mongoexport/">MongoDB mongoexport command
+     *          documentation</a>
+     * @since 1.7
+     */
+    // @formatter:off
+    public static final CSVFormat MONGODB_TSV = DEFAULT
+            .withDelimiter(TAB)
+            .withEscape(DOUBLE_QUOTE_CHAR)
+            .withQuote(DOUBLE_QUOTE_CHAR)
+            .withQuoteMode(QuoteMode.MINIMAL)
+            .withSkipHeaderRecord(false);
+    // @formatter:off
+
+    /**
      * Default MySQL format used by the {@code SELECT INTO OUTFILE} and {@code LOAD DATA INFILE} operations.
      *
      * <p>
@@ -358,13 +448,13 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter('\t')</li>
-     * <li>withQuote(null)</li>
-     * <li>withRecordSeparator('\n')</li>
-     * <li>withIgnoreEmptyLines(false)</li>
-     * <li>withEscape('\\')</li>
-     * <li>withNullString("\\N")</li>
-     * <li>withQuoteMode(QuoteMode.ALL_NON_NULL)</li>
+     * <li>{@code withDelimiter('\t')}</li>
+     * <li>{@code withEscape('\\')}</li>
+     * <li>{@code withIgnoreEmptyLines(false)}</li>
+     * <li>{@code withQuote(null)}</li>
+     * <li>{@code withRecordSeparator('\n')}</li>
+     * <li>{@code withNullString("\\N")}</li>
+     * <li>{@code withQuoteMode(QuoteMode.ALL_NON_NULL)}</li>
      * </ul>
      *
      * @see Predefined#MySQL
@@ -386,26 +476,27 @@ public final class CSVFormat implements Serializable {
      * Default Oracle format used by the SQL*Loader utility.
      *
      * <p>
-     * This is a comma-delimited format with the system line separator character as the record separator. Values are double quoted when needed and special
-     * characters are escaped with {@code '"'}. The default NULL string is {@code ""}. Values are trimmed.
+     * This is a comma-delimited format with the system line separator character as the record separator.Values are
+     * double quoted when needed and special characters are escaped with {@code '"'}. The default NULL string is
+     * {@code ""}. Values are trimmed.
      * </p>
      *
      * <p>
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter(',') // default is {@code FIELDS TERMINATED BY ','}</li>
-     * <li>withQuote('"')  // default is {@code OPTIONALLY ENCLOSED BY '"'}</li>
-     * <li>withSystemRecordSeparator()</li>
-     * <li>withTrim()</li>
-     * <li>withIgnoreEmptyLines(false)</li>
-     * <li>withEscape('\\')</li>
-     * <li>withNullString("\\N")</li>
-     * <li>withQuoteMode(QuoteMode.MINIMAL)</li>
+     * <li>{@code withDelimiter(',') // default is {@code FIELDS TERMINATED BY ','}}</li>
+     * <li>{@code withEscape('\\')}</li>
+     * <li>{@code withIgnoreEmptyLines(false)}</li>
+     * <li>{@code withQuote('"')  // default is {@code OPTIONALLY ENCLOSED BY '"'}}</li>
+     * <li>{@code withNullString("\\N")}</li>
+     * <li>{@code withTrim()}</li>
+     * <li>{@code withSystemRecordSeparator()}</li>
+     * <li>{@code withQuoteMode(QuoteMode.MINIMAL)}</li>
      * </ul>
      *
      * @see Predefined#Oracle
-     * @see <a href="https://docs.oracle.com/database/121/SUTIL/GUID-D1762699-8154-40F6-90DE-EFB8EB6A9AB0.htm#SUTIL4217">https://docs.oracle.com/database/121/SUTIL/GUID-D1762699-8154-40F6-90DE-EFB8EB6A9AB0.htm#SUTIL4217</a>
+     * @see <a href="https://s.apache.org/CGXG">Oracle CSV Format Specification</a>
      * @since 1.6
      */
     // @formatter:off
@@ -432,18 +523,18 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter(',')</li>
-     * <li>withQuote('"')</li>
-     * <li>withRecordSeparator('\n')</li>
-     * <li>withIgnoreEmptyLines(false)</li>
-     * <li>withEscape('\\')</li>
-     * <li>withNullString("")</li>
-     * <li>withQuoteMode(QuoteMode.ALL_NON_NULL)</li>
+     * <li>{@code withDelimiter(',')}</li>
+     * <li>{@code withEscape('"')}</li>
+     * <li>{@code withIgnoreEmptyLines(false)}</li>
+     * <li>{@code withQuote('"')}</li>
+     * <li>{@code withRecordSeparator('\n')}</li>
+     * <li>{@code withNullString("")}</li>
+     * <li>{@code withQuoteMode(QuoteMode.ALL_NON_NULL)}</li>
      * </ul>
      *
      * @see Predefined#MySQL
-     * @see <a href="https://www.postgresql.org/docs/current/static/sql-copy.html"> https://www.postgresql.org/docs/current/static/sql-copy.html
-     *      -data.html</a>
+     * @see <a href="https://www.postgresql.org/docs/current/static/sql-copy.html">PostgreSQL COPY command
+     *          documentation</a>
      * @since 1.5
      */
     // @formatter:off
@@ -469,23 +560,24 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter('\t')</li>
-     * <li>withQuote('"')</li>
-     * <li>withRecordSeparator('\n')</li>
-     * <li>withIgnoreEmptyLines(false)</li>
-     * <li>withEscape('\\')</li>
-     * <li>withNullString("\\N")</li>
-     * <li>withQuoteMode(QuoteMode.ALL_NON_NULL)</li>
+     * <li>{@code withDelimiter('\t')}</li>
+     * <li>{@code withEscape('\\')}</li>
+     * <li>{@code withIgnoreEmptyLines(false)}</li>
+     * <li>{@code withQuote('"')}</li>
+     * <li>{@code withRecordSeparator('\n')}</li>
+     * <li>{@code withNullString("\\N")}</li>
+     * <li>{@code withQuoteMode(QuoteMode.ALL_NON_NULL)}</li>
      * </ul>
      *
      * @see Predefined#MySQL
-     * @see <a href="https://www.postgresql.org/docs/current/static/sql-copy.html"> https://www.postgresql.org/docs/current/static/sql-copy.html</a>
+     * @see <a href="https://www.postgresql.org/docs/current/static/sql-copy.html">PostgreSQL COPY command
+     *          documentation</a>
      * @since 1.5
      */
     // @formatter:off
     public static final CSVFormat POSTGRESQL_TEXT = DEFAULT
             .withDelimiter(TAB)
-            .withEscape(DOUBLE_QUOTE_CHAR)
+            .withEscape(BACKSLASH)
             .withIgnoreEmptyLines(false)
             .withQuote(DOUBLE_QUOTE_CHAR)
             .withRecordSeparator(LF)
@@ -500,10 +592,10 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter(',')</li>
-     * <li>withQuote('"')</li>
-     * <li>withRecordSeparator("\r\n")</li>
-     * <li>withIgnoreEmptyLines(false)</li>
+     * <li>{@code withDelimiter(',')}</li>
+     * <li>{@code withQuote('"')}</li>
+     * <li>{@code withRecordSeparator("\r\n")}</li>
+     * <li>{@code withIgnoreEmptyLines(false)}</li>
      * </ul>
      *
      * @see Predefined#RFC4180
@@ -519,10 +611,10 @@ public final class CSVFormat implements Serializable {
      * Settings are:
      * </p>
      * <ul>
-     * <li>withDelimiter('\t')</li>
-     * <li>withQuote('"')</li>
-     * <li>withRecordSeparator("\r\n")</li>
-     * <li>withIgnoreSurroundingSpaces(true)</li>
+     * <li>{@code withDelimiter('\t')}</li>
+     * <li>{@code withQuote('"')}</li>
+     * <li>{@code withRecordSeparator("\r\n")}</li>
+     * <li>{@code withIgnoreSurroundingSpaces(true)}</li>
      * </ul>
      *
      * @see Predefined#TDF
@@ -616,6 +708,8 @@ public final class CSVFormat implements Serializable {
 
     private final Character quoteCharacter; // null if quoting is disabled
 
+    private final String quotedNullString;
+
     private final QuoteMode quoteMode;
 
     private final String recordSeparator; // for outputs
@@ -668,11 +762,11 @@ public final class CSVFormat implements Serializable {
      *             if the delimiter is a line break character
      */
     private CSVFormat(final char delimiter, final Character quoteChar, final QuoteMode quoteMode,
-                      final Character commentStart, final Character escape, final boolean ignoreSurroundingSpaces,
-                      final boolean ignoreEmptyLines, final String recordSeparator, final String nullString,
-                      final Object[] headerComments, final String[] header, final boolean skipHeaderRecord,
-                      final boolean allowMissingColumnNames, final boolean ignoreHeaderCase, final boolean trim,
-                      final boolean trailingDelimiter, final boolean autoFlush) {
+            final Character commentStart, final Character escape, final boolean ignoreSurroundingSpaces,
+            final boolean ignoreEmptyLines, final String recordSeparator, final String nullString,
+            final Object[] headerComments, final String[] header, final boolean skipHeaderRecord,
+            final boolean allowMissingColumnNames, final boolean ignoreHeaderCase, final boolean trim,
+            final boolean trailingDelimiter, final boolean autoFlush) {
         this.delimiter = delimiter;
         this.quoteCharacter = quoteChar;
         this.quoteMode = quoteMode;
@@ -690,6 +784,7 @@ public final class CSVFormat implements Serializable {
         this.trailingDelimiter = trailingDelimiter;
         this.trim = trim;
         this.autoFlush = autoFlush;
+        this.quotedNullString = quoteCharacter + nullString + quoteCharacter;
         validate();
     }
 
@@ -1081,20 +1176,29 @@ public final class CSVFormat implements Serializable {
                 charSequence = EMPTY;
             } else {
                 if (QuoteMode.ALL == quoteMode) {
-                    charSequence = quoteCharacter + nullString + quoteCharacter;
+                    charSequence = quotedNullString;
                 } else {
                     charSequence = nullString;
                 }
             }
         } else {
-            charSequence = value instanceof CharSequence ? (CharSequence) value : value.toString();
+            if (value instanceof CharSequence) {
+                charSequence = (CharSequence) value;
+            } else if (value instanceof Reader) {
+                print((Reader) value, out, newRecord);
+                return;
+            } else {
+                charSequence = value.toString();
+            }
         }
         charSequence = getTrim() ? trim(charSequence) : charSequence;
-        this.print(value, charSequence, 0, charSequence.length(), out, newRecord);
+        print(value, charSequence, out, newRecord);
     }
 
-    private void print(final Object object, final CharSequence value, final int offset, final int len,
-            final Appendable out, final boolean newRecord) throws IOException {
+    private void print(final Object object, final CharSequence value, final Appendable out, final boolean newRecord)
+            throws IOException {
+        final int offset = 0;
+        final int len = value.length();
         if (!newRecord) {
             out.append(getDelimiter());
         }
@@ -1102,11 +1206,11 @@ public final class CSVFormat implements Serializable {
             out.append(value);
         } else if (isQuoteCharacterSet()) {
             // the original object is needed so can check for Number
-            printAndQuote(object, value, offset, len, out, newRecord);
+            printWithQuotes(object, value, out, newRecord);
         } else if (isEscapeCharacterSet()) {
-            printAndEscape(value, offset, len, out);
+            printWithEscapes(value, out);
         } else {
-            out.append(value, offset, offset + len);
+            out.append(value, offset, len);
         }
     }
 
@@ -1130,14 +1234,89 @@ public final class CSVFormat implements Serializable {
         return print(Files.newBufferedWriter(out, charset));
     }
 
+    private void print(final Reader reader, final Appendable out, final boolean newRecord) throws IOException {
+        // Reader is never null
+        if (!newRecord) {
+            out.append(getDelimiter());
+        }
+        if (isQuoteCharacterSet()) {
+            printWithQuotes(reader, out);
+        } else if (isEscapeCharacterSet()) {
+            printWithEscapes(reader, out);
+        } else if (out instanceof Writer) {
+            IOUtils.copyLarge(reader, (Writer) out);
+        } else {
+            IOUtils.copy(reader, out);
+        }
+
+    }
+
+    /**
+     * Prints to the {@link System#out}.
+     *
+     * <p>
+     * See also {@link CSVPrinter}.
+     * </p>
+     *
+     * @return a printer to {@link System#out}.
+     * @throws IOException
+     *             thrown if the optional header cannot be printed.
+     * @since 1.5
+     */
+    public CSVPrinter printer() throws IOException {
+        return new CSVPrinter(System.out, this);
+    }
+
+    /**
+     * Outputs the trailing delimiter (if set) followed by the record separator (if set).
+     *
+     * @param out
+     *            where to write
+     * @throws IOException
+     *             If an I/O error occurs
+     * @since 1.4
+     */
+    public void println(final Appendable out) throws IOException {
+        if (getTrailingDelimiter()) {
+            out.append(getDelimiter());
+        }
+        if (recordSeparator != null) {
+            out.append(recordSeparator);
+        }
+    }
+
+    /**
+     * Prints the given {@code values} to {@code out} as a single record of delimiter separated values followed by the
+     * record separator.
+     *
+     * <p>
+     * The values will be quoted if needed. Quotes and new-line characters will be escaped. This method adds the record
+     * separator to the output after printing the record, so there is no need to call {@link #println(Appendable)}.
+     * </p>
+     *
+     * @param out
+     *            where to write.
+     * @param values
+     *            values to output.
+     * @throws IOException
+     *             If an I/O error occurs.
+     * @since 1.4
+     */
+    public void printRecord(final Appendable out, final Object... values) throws IOException {
+        for (int i = 0; i < values.length; i++) {
+            print(values[i], out, i == 0);
+        }
+        println(out);
+    }
+
     /*
      * Note: must only be called if escaping is enabled, otherwise will generate NPE
      */
-    private void printAndEscape(final CharSequence value, final int offset, final int len, final Appendable out)
-            throws IOException {
-        int start = offset;
-        int pos = offset;
-        final int end = offset + len;
+    private void printWithEscapes(final CharSequence value, final Appendable out) throws IOException {
+        int start = 0;
+        int pos = 0;
+        final int len = value.length();
+        final int end = len;
 
         final char delim = getDelimiter();
         final char escape = getEscapeCharacter().charValue();
@@ -1160,7 +1339,6 @@ public final class CSVFormat implements Serializable {
 
                 start = pos + 1; // start on the current char after this one
             }
-
             pos++;
         }
 
@@ -1170,16 +1348,54 @@ public final class CSVFormat implements Serializable {
         }
     }
 
+    private void printWithEscapes(final Reader reader, final Appendable out) throws IOException {
+        int start = 0;
+        int pos = 0;
+
+        final char delim = getDelimiter();
+        final char escape = getEscapeCharacter().charValue();
+        final StringBuilder builder = new StringBuilder(IOUtils.DEFAULT_BUFFER_SIZE);
+
+        int c;
+        while (-1 != (c = reader.read())) {
+            builder.append((char) c);
+            if (c == CR || c == LF || c == delim || c == escape) {
+                // write out segment up until this char
+                if (pos > start) {
+                    out.append(builder.substring(start, pos));
+                    builder.setLength(0);
+                }
+                if (c == LF) {
+                    c = 'n';
+                } else if (c == CR) {
+                    c = 'r';
+                }
+
+                out.append(escape);
+                out.append((char) c);
+
+                start = pos + 1; // start on the current char after this one
+            }
+            pos++;
+        }
+
+        // write last segment
+        if (pos > start) {
+            out.append(builder.substring(start, pos));
+        }
+    }
+
     /*
      * Note: must only be called if quoting is enabled, otherwise will generate NPE
      */
     // the original object is needed so can check for Number
-    private void printAndQuote(final Object object, final CharSequence value, final int offset, final int len,
-            final Appendable out, final boolean newRecord) throws IOException {
+    private void printWithQuotes(final Object object, final CharSequence value, final Appendable out,
+            final boolean newRecord) throws IOException {
         boolean quote = false;
-        int start = offset;
-        int pos = offset;
-        final int end = offset + len;
+        int start = 0;
+        int pos = 0;
+        final int len = value.length();
+        final int end = len;
 
         final char delimChar = getDelimiter();
         final char quoteChar = getQuoteCharacter().charValue();
@@ -1198,7 +1414,7 @@ public final class CSVFormat implements Serializable {
             break;
         case NONE:
             // Use the existing escaping code
-            printAndEscape(value, offset, len, out);
+            printWithEscapes(value, out);
             return;
         case MINIMAL:
             if (len <= 0) {
@@ -1280,61 +1496,47 @@ public final class CSVFormat implements Serializable {
     }
 
     /**
-     * Prints to the {@link System#out}.
+     * Always use quotes unless QuoteMode is NONE, so we not have to look ahead.
      *
-     * <p>
-     * See also {@link CSVPrinter}.
-     * </p>
-     *
-     * @return a printer to {@link System#out}.
      * @throws IOException
-     *             thrown if the optional header cannot be printed.
-     * @since 1.5
      */
-    public CSVPrinter printer() throws IOException {
-        return new CSVPrinter(System.out, this);
-    }
+    private void printWithQuotes(final Reader reader, final Appendable out) throws IOException {
 
-    /**
-     * Outputs the trailing delimiter (if set) followed by the record separator (if set).
-     *
-     * @param out
-     *            where to write
-     * @throws IOException
-     *             If an I/O error occurs
-     * @since 1.4
-     */
-    public void println(final Appendable out) throws IOException {
-        if (getTrailingDelimiter()) {
-            out.append(getDelimiter());
+        if (getQuoteMode() == QuoteMode.NONE) {
+            printWithEscapes(reader, out);
+            return;
         }
-        if (recordSeparator != null) {
-            out.append(recordSeparator);
-        }
-    }
 
-    /**
-     * Prints the given {@code values} to {@code out} as a single record of delimiter separated values followed by the
-     * record separator.
-     *
-     * <p>
-     * The values will be quoted if needed. Quotes and new-line characters will be escaped. This method adds the record
-     * separator to the output after printing the record, so there is no need to call {@link #println(Appendable)}.
-     * </p>
-     *
-     * @param out
-     *            where to write.
-     * @param values
-     *            values to output.
-     * @throws IOException
-     *             If an I/O error occurs.
-     * @since 1.4
-     */
-    public void printRecord(final Appendable out, final Object... values) throws IOException {
-        for (int i = 0; i < values.length; i++) {
-            print(values[i], out, i == 0);
+        int pos = 0;
+
+        final char quote = getQuoteCharacter().charValue();
+        final StringBuilder builder = new StringBuilder(IOUtils.DEFAULT_BUFFER_SIZE);
+
+        out.append(quote);
+
+        int c;
+        while (-1 != (c = reader.read())) {
+            builder.append((char) c);
+            if (c == quote) {
+                // write out segment up until this char
+                if (pos > 0) {
+                    out.append(builder.substring(0, pos));
+                    builder.setLength(0);
+                    pos = -1;
+                }
+
+                out.append(quote);
+                out.append((char) c);
+            }
+            pos++;
         }
-        println(out);
+
+        // write last segment
+        if (pos > 0) {
+            out.append(builder.substring(0, pos));
+        }
+
+        out.append(quote);
     }
 
     @Override
@@ -1498,8 +1700,8 @@ public final class CSVFormat implements Serializable {
      */
     public CSVFormat withAutoFlush(final boolean autoFlush) {
         return new CSVFormat(delimiter, quoteCharacter, quoteMode, commentMarker, escapeCharacter,
-            ignoreSurroundingSpaces, ignoreEmptyLines, recordSeparator, nullString, headerComments, header,
-            skipHeaderRecord, allowMissingColumnNames, ignoreHeaderCase, trim, trailingDelimiter, autoFlush);
+                ignoreSurroundingSpaces, ignoreEmptyLines, recordSeparator, nullString, headerComments, header,
+                skipHeaderRecord, allowMissingColumnNames, ignoreHeaderCase, trim, trailingDelimiter, autoFlush);
     }
 
     /**
@@ -1612,6 +1814,7 @@ public final class CSVFormat implements Serializable {
      * <p>
      * Example:
      * </p>
+     *
      * <pre>
      * public enum Header {
      *     Name, Email, Phone
@@ -1943,7 +2146,7 @@ public final class CSVFormat implements Serializable {
     /**
      * Returns a new {@code CSVFormat} with skipping the header record set to {@code true}.
      *
-     * @return A new CSVFormat that is equal to this but with the the specified skipHeaderRecord setting.
+     * @return A new CSVFormat that is equal to this but with the specified skipHeaderRecord setting.
      * @see #withSkipHeaderRecord(boolean)
      * @see #withHeader(String...)
      * @since 1.1
@@ -1958,7 +2161,7 @@ public final class CSVFormat implements Serializable {
      * @param skipHeaderRecord
      *            whether to skip the header record.
      *
-     * @return A new CSVFormat that is equal to this but with the the specified skipHeaderRecord setting.
+     * @return A new CSVFormat that is equal to this but with the specified skipHeaderRecord setting.
      * @see #withHeader(String...)
      */
     public CSVFormat withSkipHeaderRecord(final boolean skipHeaderRecord) {
